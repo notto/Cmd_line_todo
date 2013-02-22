@@ -1,0 +1,12 @@
+This is just a simple command line to-do list I hacked together during a couple of classes.
+
+It takes a file to read from and write to as its sole command-line argument.  Items are
+separated by newlines, so any files passed will be read as such.
+
+Provided you have gcc installed, navigate to the correct directory and compile with:
+
+g++ workQueue.cpp
+
+Run with:
+
+./<executable name> <To-do list file name>
