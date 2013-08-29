@@ -16,19 +16,52 @@ bool checkEmpty(vector<string> &workflow){
 
 int main(int argc, char *argv[]){
 	if (argc < 2){
-		cerr<<"Bad command-line arguments.  Format: './<executable> <filename>'"<<endl;
+		cerr<<"Bad command-line arguments.  Format: './<executable> <fileName>/all'"<<endl;
 		exit(1);
 	}
 	vector<string> workflow;
-	ifstream queueFile;
-	string fileName, line;
+	vector<string> lists;
+	ifstream indexFile, queueFile;
+	ofstream writeFile;
+	string fileName, line, line2;
 	fileName = argv[1];
+	if(fileName == "all"){
+		indexFile.open("index.txt");
+		while(getline(indexFile, line)){
+			cout<<line<<":\n";
+			queueFile.open(line.c_str());
+			int i = 0;
+			while(getline(queueFile, line2)){
+				cout<<i<<"\t"<<line2<<endl;
+				i++;
+			}
+			queueFile.close();
+		}
+		indexFile.close();
+		exit(0);
+	}
+	if(fileName == "index.txt"){
+		cerr<<"Bad file name.  Cannot use 'index.txt' to store list data"<<endl;
+		exit(1);
+	}
+	bool foundList = false;
+	indexFile.open("index.txt");
+	while(getline(indexFile, line)){
+		lists.push_back(line);
+		if(line == fileName) foundList = true;
+	}
+	indexFile.close();
+	if(!foundList){
+		lists.push_back(fileName);
+		writeFile.open("index.txt");
+		for(int i = 0; i < lists.size(); i++) writeFile << lists[i]+"\n";
+		writeFile.close();
+	}
 	queueFile.open(fileName.c_str());
 	while(getline(queueFile,line)){
 		workflow.push_back(line);
 	}
 	queueFile.close();
-	ofstream writeFile;
 	vector<string> input;
 	string temp, curList;
 	bool found;
@@ -67,6 +100,10 @@ int main(int argc, char *argv[]){
 				cerr<<"Form: remove [value/indexVal]\n";
 				continue;
 			}
+			else if (input[0] == "all"){
+				cerr<<"Form: all lists/elements\n";
+				continue;
+			}
 			else if (input[0] == "randomize" || input[0] == "rand"){
 				if (checkEmpty(workflow)) continue;
 				int switchVal;
@@ -89,15 +126,18 @@ int main(int argc, char *argv[]){
 			}
 			else if (input[0] == "help" || input[0] == "h"){
 				cout<<"  COMMANDS:\n"
-					<<"\tShow all lists:\t list/ls/l\n"
-					<<"\tShow elements of current list:\t elements/elts/e\n"
+					<<"\tCMD Line - show all elements of all lists:\t ./<executable> all"
+					<<"\tShow all lists:\t all lists\n"
+					<<"\tShow all elements of all lists (while keeping focus on current list):\t all elements\n"
+					<<"\tShow elements of current list:\t list/ls/l\n"
 					<<"\tAdd element:\t add/a <someElement>\n"
 					<<"\tRemove element:\t remove/r <someElement/indexVal>\n"
-					<<"\tNew list:\t new/n (<listName>)\n"
-					<<"\tChange list:\t change/c (<listName>)\n"
+					//<<"\tNew list:\t new/n (<listName>)\n"
+					//<<"\tChange list:\t change/c (<listName>)\n"
 					<<"\tSave to file:\t save/s\n"
 					<<"\tRandomize:\t randomize/rand\n"
 					<<"\tClear:\t\t clear/c\n"
+					<<"\tShow all lists:\t\tall\n"
 					<<"\tQuit:\t\t quit/q"<<endl;
 				continue;
 			}
@@ -145,7 +185,7 @@ int main(int argc, char *argv[]){
 					continue;
 				}
 			}
-			else if (input[0] == "terminate"){
+			else if (input[0] == "terminate" || input[0] == "tm"){
 				writeFile.close();
 				exit(0);
 			}
@@ -180,7 +220,7 @@ int main(int argc, char *argv[]){
 					}
 				}
 			}
-			else if (input[0] == "add"){
+			else if (input[0] == "add" || input[0] == "a"){
 				workflow.push_back(input[1]);
 				continue;
 			}
@@ -208,6 +248,32 @@ int main(int argc, char *argv[]){
 						continue;
 					}
 					workflow.erase(workflow.begin() + indexValue);
+					continue;
+				}
+			}
+			else if (input[0] == "all"){
+				if(input[1] == "lists"){
+					cout<<"All list files:\n";
+					for(int i = 0; i < lists.size(); i++){
+						cout<<lists[i]<<endl;
+					}
+					continue;
+				}
+				else if(input[1] == "elements"){
+					for(int i = 0; i < lists.size(); i++){
+						cout<<lists[i]<<endl;
+						queueFile.open(lists[i].c_str());
+						int j = 0;
+						while(getline(queueFile, line)){
+							cout<<j<<"\t"<<line<<endl;
+							j++;
+						}
+						queueFile.close();
+					}
+					continue;
+				}
+				else{
+					cerr<<"Parameter not recognized.  Use 'help' or 'h' for options.\n";
 					continue;
 				}
 			}
